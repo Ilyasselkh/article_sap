@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+        <record model="ir.actions.act_window" id="action_kanban">
+            <field name="name">Dashboard</field>
+            <field name="res_model">article.article</field>
+            <field name="view_mode">kanban</field>
+        </record>
+
+        <menuitem   id="menu_sap_dashboard" name="Dashboard"
+                    parent="menu_article_root" 
+                    action="action_kanban"
+                    sequence="30"/>
+                    
+        <record id="article_sap_kanban" model="ir.ui.view">
+                <field name="name">article.sap.kanban</field>
+                <field name="model">article.cat</field>
+                <field name="arch" type="xml">
+                
+                    <kanban class="oe_background_grey o_kanban_dashboard o_emphasize_colors o_stock_kanban" create="0" group_create="false">
+                        
+                    
+                        
+                    
+                            <t t-name="card" >
+                                
+                                    <field name="title" invisible="1"/>
+                                    <field name="color" invisible="1"/>    
+                                    <field name="statename" invisible="1"/>
+                                <div t-attf-class="#{kanban_color(record.color.raw_value)} container o_kanban_card_content" style="height:150px" >
+                                        <div class="row">
+                                            
+                                            <div class="o_primary">
+                                                <h2>
+                                                    <field name="title"/>
+
+                                                </h2>
+   
+                                            </div>
+
+                                            <div class="o_secondary"></div>
+
+                                            <div t-if="record.statename.raw_value == 'sales'" class="col-4 o_kanban_primary_right">
+                                                    <button class="btn btn-success" name="create" type="object">
+                                                        <span >Créer</span>
+                                                    
+                                                    </button>
+                                            </div>
+                                            <div class="col-6 o_kanban_primary_left">
+
+                                                    <button class="btn btn-primary" name="get_stock_picking_action_picking_type" type="object" context="{'search_default_state': statename}" >
+                                                        <span t-if="record.statename.raw_value == 'sales'">En cours (<field class="o_secondary"  name="countsales" readonly="1"/>)</span>
+                                                    
+                                                        <span t-if="record.statename.raw_value == 'logistique'">En cours (<field class="o_secondary"  name="countlogistique" readonly="1"/>)</span>
+                                                        <span t-if="record.statename.raw_value == 'achat'">En cours (<field class="o_secondary"  name="countachat" readonly="1"/>)</span>
+                                                        <span t-if="record.statename.raw_value == 'eng'">En cours (<field class="o_secondary"  name="counteng" readonly="1"/>)</span>
+                                                        <span t-if="record.statename.raw_value == 'keyuser'">En cours (<field class="o_secondary"  name="countkeyuser" readonly="1"/>)</span>
+                                                        <span t-if="record.statename.raw_value == 'finance'">En cours (<field class="o_secondary"  name="countfinance" readonly="1"/>)</span>
+                                                        <span t-if="record.statename.raw_value == 'derogation'">En cours (<field class="o_secondary"  name="countderogation" readonly="1"/>)</span>
+                                                        <span t-if="record.statename.raw_value == 'archive'">En cours (<field class="o_secondary"  name="countarchive" readonly="1"/>)</span>
+
+                                                    </button>
+                                            
+                                                    
+       
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                            </t>
+                        
+                    </kanban>
+                </field>
+            </record>
+
+</odoo>
