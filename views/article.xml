@@ -1,0 +1,361 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+        <record model="ir.actions.act_window" id="action_article"> 
+            <field name="name">Article SAP</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">article.article</field>
+            <field name="domain">[('state', 'not in', ('archive','derogation'))]</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record model="ir.actions.act_window" id="action_reference"> 
+            <field name="name">Liste des références</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">article.article</field>
+            <field name="domain">[('state', 'in', ('archive','derogation'))]</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <menuitem   id="menu_article_root" name="Article SAP"
+                    action="action_article"
+                    sequence="1"/>
+        
+        <menuitem   id="menu_sap_reference" name="Liste des références"
+                    parent="menu_article_root" 
+                    action="action_reference"
+                    sequence="50"/>
+
+
+        <record id="sap_reference_tree" model="ir.ui.view">
+            <field name="name">article.reference.list</field>
+            <field name="model">article.lignebom</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="id_ref"  /> 
+                    <field name="designation_article" />
+                    <field name="type_fab_article" />
+                    <field name="state_fiche_article" />
+                </list>
+            </field>
+        </record>
+
+        <record id="article_sap_form" model="ir.ui.view">
+            <field name="name">article.sap.form</field>
+            <field name="model">article.article</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button string="Envoyer"  name="send_sales" groups="article_sap.group_sales,article_sap.group_keyuser" type="object" invisible="state != 'sales'" class="btn-primary"/>
+                        <button string="Envoyer"  name="send_logistique" groups="article_sap.group_logistique" type="object" invisible="state != 'logistique'" class="btn-primary"/>
+                        <button string="Envoyer"  name="send_achat1" groups="article_sap.group_achat" type="object" invisible="state != 'achat1'" class="btn-primary"/>
+                        <button string="Envoyer"  name="send_eng" groups="article_sap.group_eng" type="object" invisible="state != 'eng'" class="btn-primary"/>
+                        <button string="Envoyer"  name="send_keyuser" groups="article_sap.group_keyuser" type="object" invisible="state != 'keyuser'" class="btn-primary"/>
+                        <button string="Envoyer"  name="send_achat2" groups="article_sap.group_achat" type="object" invisible="state != 'achat2'" class="btn-primary"/>
+                        <button string="Envoyer"  name="send_finance" groups="article_sap.group_finance" type="object" invisible="state != 'finance'" class="btn-primary"/>
+                        <button string="Archiver"  name="archiver" groups="article_sap.group_keyuser" type="object" invisible="state != 'keyuser'" class="btn-primary"/>
+                        <button string="Modifier"  name="modifier" type="object" invisible="edit == True" class="btn-primary"/>
+                        <button string="Supprimer"  name="delete" type="object" invisible="state not in ['sales','finance','logistique','achat1','achat2','keyuser','derogation']" class="btn-primary"/>
+                        <field name="state" widget="statusbar" readonly="1"/>
+                    </header>
+                    <sheet>
+                        <group col="2">
+                            <h1 colspan="2">
+                                <label for="modif" invisible="modif == False"/>
+                                <field name="modif" style="color:red ! important;" invisible="modif == False" readonly="state not in ['d']"/>                                
+                            </h1>
+                            <h1 colspan="2">
+                                <field name="edit" invisible="1"/>
+                                <field name="deleted" invisible="1"/>
+                                <field name="isfab" invisible="1"/>
+                                <label for="ref"/>
+                                <field name="ref" style="color:green" readonly="state not in ['d']"/>
+                            </h1>
+                        </group>    
+                    
+                        <group string="Zone commentaires" invisible="comsal == False and comfin == False and comlog == False and comkey == False">               
+                            <h2 colspan="2">
+                                <group>
+                                    <field name="comsal" style="color:red ! important;" string="Commentaire Sales" invisible="comsal == False" readonly="(edit != True or state not in ['sales'])"/> 
+                                    <field name="comlog" style="color:red ! important;" string="Commentaire Logistique" invisible="comlog == False" readonly="(edit != True or state not in ['logistique'])"/>
+                                    <field name="comach" style="color:red ! important;" string="Commentaire Achat" invisible="comach == False" readonly="(edit != True or state not in ['achat1','achat2'])"/>
+                                    <field name="comeng" style="color:red ! important;" string="Commentaire Ingénieurie" invisible="comeng == False" readonly="(edit != True or state not in ['eng'])"/>
+                                    <field name="comkey" style="color:red ! important;" string="Commentaire Key user" invisible="comkey == False" readonly="(edit != True or state not in ['keyuser'])"/>
+                                    <field name="comfin" style="color:red ! important;" string="Commentaire Finance" invisible="comfin == False" readonly="(edit != True or state not in ['finance'])"/>
+                                </group>
+                            </h2>                                
+                        </group>
+                            
+                        <group string="Données finance" style="font-size:10pt;" col="2" invisible="state not in ['finance','archive','derogation']" readonly="(edit != True or state != 'finance')">
+                            <group>
+                                <field name="ccr" placeholder="Vide" invisible="state not in ['finance','archive','derogation']" readonly="(edit != True or state != 'finance')" required="state == 'finance' and edit == True"/>
+                                <field name="budget" placeholder="Vide" invisible="state not in ['finance','archive','derogation']" readonly="(edit != True or state != 'finance')" required="state == 'finance' and edit == True"/>
+                            </group>
+                        </group>            
+                        <group>            
+                            <field name="comfin" placeholder="Vide" groups="article_sap.group_finance" invisible="state not in ['finance']" readonly="(edit != True or state != 'finance')"/> 
+                        </group>
+
+                        <group string="Données création SAP" style="font-size:10pt;" col="2" invisible="state not in ['keyuser','achat2','finance','archive','derogation']" readonly="(edit != True or state != 'keyuser')">
+                            <group>
+                                <field name="creationar" placeholder="Vide" invisible="state not in ['keyuser','achat2','finance','archive','derogation']" readonly="(edit != True or state != 'keyuser')" required="state == 'keyuser' and edit == True"/>
+                                <field name="creationbom" placeholder="Vide" invisible="state not in ['keyuser','achat2','finance','archive','derogation']" readonly="(edit != True or state != 'keyuser')" required="state == 'keyuser' and edit == True"/>
+                                <field name="creationgam" placeholder="Vide" invisible="state not in ['keyuser','achat2','finance','archive','derogation']" readonly="(edit != True or state != 'keyuser')" required="state == 'keyuser' and edit == True"/>
+                            </group>
+                        </group>            
+                        <group>            
+                            <field name="comkey" placeholder="Vide" groups="article_sap.group_keyuser" invisible="state not in ['keyuser']" readonly="(edit != True or state != 'keyuser')"/> 
+                        </group>
+                        
+                        <group string="Données Ingénieurie" style="font-size:10pt;" col="2" invisible="state not in ['eng','keyuser','achat2','finance','archive','derogation']" readonly="(edit != True or state != 'eng')">
+                            <group>
+                                <field name="validation" placeholder="Vide" invisible="state not in ['eng','keyuser','achat2','finance','archive','derogation']" readonly="(edit != True or state != 'eng')"/>
+                            </group>
+                        </group>            
+                        <group>            
+                            <field name="comeng" placeholder="Vide" groups="article_sap.group_eng" invisible="state not in ['eng']" readonly="(edit != True or state != 'eng')"/> 
+                        </group>
+
+                        <group string="Données achat" style="font-size:10pt;" col="2" invisible="state not in ['achat1','eng','achat2','finance','keyuser','archive','derogation']" readonly="(edit != True or state not in ['achat1','achat2'])"> 
+                            <group col="1"> 
+                                <group col="2">   
+                                    <group col="2">
+                                        <field name="prix" placeholder="Vide" invisible="state not in ['achat1','eng','achat2','finance','keyuser','archive','derogation']" readonly="(edit != True or state not in ['achat1'])" required="state == 'achat1' and edit == True"/>
+                                    </group>
+                                    <group>
+                                        <field name="currency" nolabel="1" placeholder="Vide" invisible="state not in ['achat1','eng','achat2','finance','keyuser','archive','derogation']" readonly="(edit != True or state not in ['achat1'])" required="state == 'achat1' and edit == True"/>
+                                    </group>
+                                    <group col="2">
+                                        <field name="baseprix" placeholder="Vide" invisible="state not in ['achat1','eng','achat2','finance','keyuser','archive','derogation']" readonly="(edit != True or state not in ['achat1'])" required="state == 'achat1' and edit == True"/>
+                                    </group>
+                                    <group>
+                                        <field name="baseunite" nolabel="1" placeholder="Vide" invisible="state not in ['achat1','eng','achat2','finance','keyuser','archive','derogation']" readonly="(edit != True or state not in ['achat1'])" required="state == 'achat1' and edit == True"/>
+                                    </group>
+                                </group>
+                            </group>
+                            <group col="1">
+                                <group col="2">
+                                    <field name="fichefour" widget="boolean_toggle" invisible="state not in ['achat2','finance','archive','derogation']" readonly="(edit != True or state not in ['achat2'])" required="state == 'achat2' and edit == True"/>
+                                    <field name="fichedumy" widget="boolean_toggle" invisible="state not in ['achat2','finance','archive','derogation']" readonly="(edit != True or state not in ['achat2'])" required="state == 'achat2' and edit == True"/>
+                                </group>
+                            </group>
+                        </group>            
+                        <group>            
+                            <field name="comach" placeholder="Vide" groups="article_sap.group_achat" invisible="state not in ['achat1','achat2']" readonly="(edit != True or state not in ['achat1','achat2'])"/> 
+                        </group>
+
+                        <group string="Données logistique" col="2" invisible="state in ['sales']" readonly="(edit != True or state != 'logistique')">
+                            <group col="1">
+                                <group col="2">
+                                    <group>
+                                        <field name="regime" placeholder="Vide" invisible="state in ['sales']" readonly="(edit != True or state != 'logistique')" required="state == 'logistique' and edit == True"/>
+                                    </group>
+                                    <group>
+                                        <field name="derregime" widget="boolean_toggle" placeholder="Vide" invisible="state in ['sales']" readonly="(edit != True or state != 'logistique')"/>
+                                    </group>
+                                </group>
+                                <group col="2">
+                                    <group>
+                                        <field name="taillelotmin" placeholder="Vide" invisible="state in ['sales']" readonly="(edit != True or state != 'logistique')" required="state == 'logistique' and edit == True"/>
+                                    </group>
+                                    <group>
+                                        <field name="dertaillelotmin" widget="boolean_toggle" placeholder="Vide" invisible="state in ['sales']" readonly="(edit != True or state != 'logistique')"/>
+                                    </group>
+                                </group>
+                                <group col="2">
+                                    <group>
+                                        <field name="delailiv" placeholder="Vide" invisible="state in ['sales']" readonly="(edit != True or state != 'logistique')" required="state == 'logistique' and edit == True"/>
+                                    </group>
+                                    <group>
+                                        <field name="derdelailiv" widget="boolean_toggle" placeholder="Vide" invisible="state in ['sales']" readonly="(edit != True or state != 'logistique')"/>
+                                    </group>
+                                </group>
+                                <group col="2">
+                                    <group>
+                                        <field name="Stocksec" placeholder="Vide" invisible="state in ['sales']" readonly="(edit != True or state != 'logistique')"/>
+                                    </group>
+                                </group>
+                            </group>
+                            <group col="1">
+                                <group col="2">
+                                    <group>        
+                                        <field name="ngp" placeholder="Vide" invisible="state in ['sales']" readonly="(edit != True or state != 'logistique')" required="state == 'logistique' and edit == True"/>
+                                    </group>
+                                    <group>
+                                        <field name="derngp" widget="boolean_toggle" placeholder="Vide" invisible="state in ['sales']" readonly="(edit != True or state != 'logistique')"/>
+                                    </group>
+                                </group>
+                                <group col="2">
+                                    <group>
+                                        <field name="tempsreception" placeholder="Vide" invisible="state in ['sales']" readonly="(edit != True or state != 'logistique')" required="state == 'logistique' and edit == True"/>
+                                    </group>
+                                    <group>
+                                        <field name="dertempsreception" widget="boolean_toggle" placeholder="Vide" invisible="state in ['sales']" readonly="(edit != True or state != 'logistique')"/>
+                                    </group>
+                                </group>
+                                <group col="2">
+                                    <group>
+                                        <field name="MRPgest" placeholder="Vide" invisible="state in ['sales']" readonly="(edit != True or state != 'logistique')" required="state == 'logistique' and edit == True"/>
+                                    </group>
+                                    <group>
+                                        <field name="derMRPgest" widget="boolean_toggle" placeholder="Vide" invisible="state in ['sales']" readonly="(edit != True or state != 'logistique')"/>
+                                    </group>
+                                </group>
+                            </group>
+                            <group>
+                                <field name="comlog" placeholder="Vide" groups="article_sap.group_logistique" invisible="state not in ['logistique']"/>
+                            </group>
+                        </group>
+
+                        <group string="Données sales" style="font-size:10pt;" col="2" readonly="(id and not edit) or state != 'sales'">
+                            <group col="1"> 
+                                <group>   
+                                    <field name="ref" required="1" placeholder="Vide" readonly="(id and not edit) or state != 'sales'"/>
+                                    <field name="reftype" required="1" placeholder="Vide" readonly="(id and not edit) or state != 'sales'"/>
+                                    <field name="typefab" placeholder="Vide" invisible="not isfab" readonly="(id and not edit) or state != 'sales'" required="state == 'sales' and isfab"/>
+                                    <field name="typeemb" placeholder="Vide" required="1" readonly="(id and not edit) or state != 'sales'"/>
+                                    <field name="dertypeemb" placeholder="Vide" invisible="typeemb not in ['autre']" readonly="(id and not edit) or state != 'sales'" required="typeemb == 'autre'"/>
+                                </group>    
+                                <group col="2">
+                                    <group>    
+                                        <field name="uniteemb" placeholder="Vide" required="1" readonly="(id and not edit) or state != 'sales'"/>
+                                    </group>
+                                    <group>
+                                        <field name="deruniteemb" widget="boolean_toggle" placeholder="Vide" readonly="(id and not edit) or state != 'sales'"/>
+                                    </group>
+                                </group>
+                                <group col="2">
+                                    <group>
+                                        <field name="fournisseur" placeholder="Vide" invisible="reftype in ['interne', 'semifini']" readonly="(id and not edit) or state != 'sales'" required="reftype in ['matiere','consommable']"/>
+                                    </group>
+                                </group>
+                                <group col="2">
+                                    <group>
+                                        <field name="tempscyc" placeholder="Vide" invisible="not isfab" readonly="(id and not edit) or state != 'sales'" required="state == 'sales' and isfab"/>
+                                    </group>
+                                    <group> 
+                                        <field name="dertempscyc" widget="boolean_toggle" placeholder="Vide" invisible="not isfab" readonly="(id and not edit) or state != 'sales'"/>
+                                    </group>
+                                </group>
+                                <group col="2">    
+                                    <group>
+                                        <field name="postetrav" placeholder="Vide" invisible="typefab != 'assemblage'" readonly="(id and not edit) or state != 'sales'" required="state == 'sales' and typefab == 'assemblage'"/>
+                                    </group>
+                                    <group>
+                                        <field name="derpostetrav" widget="boolean_toggle" placeholder="Vide" invisible="typefab != 'assemblage'" readonly="(id and not edit) or state != 'sales'"/>
+                                    </group>                                            
+                                </group>
+                                <group col="2">    
+                                    <group>
+                                        <field name="moule" placeholder="Vide" invisible="typefab != 'injection'" readonly="(id and not edit) or state != 'sales'" required="state == 'sales' and typefab == 'injection'"/>
+                                    </group>
+                                    <group>
+                                        <field name="dermoule" widget="boolean_toggle" placeholder="Vide" invisible="typefab != 'injection'" readonly="(id and not edit) or state != 'sales'"/>
+                                    </group>                                            
+                                </group>      
+                            </group>
+                            <group col="1">
+                                <group>    
+                                    <field name="designation" placeholder="Vide" required="1" readonly="(id and not edit) or state != 'sales'"/>
+                                    <field name="refstatut" placeholder="Vide" readonly="(id and not edit) or state != 'sales'" required="state == 'sales'"/>
+                                </group>
+                                <group col="2">    
+                                    <group>
+                                        <field name="pays" placeholder="Vide" readonly="(id and not edit) or state != 'sales'" required="state == 'sales'"/>
+                                    </group>
+                                    <group>
+                                        <field name="region" placeholder="Vide" readonly="(id and not edit) or state != 'sales'" required="state == 'sales'"/>
+                                    </group>                                       
+                                </group>
+                                <group col="2">
+                                    <group>
+                                        <field name="volumeannuel" placeholder="Vide" required="1" readonly="(id and not edit) or state != 'sales'"/>
+                                    </group>
+                                    <group>   
+                                        <field name="dervolumeannuel" widget="boolean_toggle" placeholder="Vide" readonly="(id and not edit) or state != 'sales'"/>
+                                    </group>
+                                </group>
+                                <group col="2">
+                                    <group>
+                                        <field name="poids" placeholder="Vide" readonly="(id and not edit) or state != 'sales'"/>
+                                    </group>
+                                    <group>
+                                        <field name="stl" required="1" placeholder="Vide" readonly="(id and not edit) or state != 'sales'"/>
+                                    </group>
+                                    <group>   
+                                        <field name="unitepoids" placeholder="Vide" readonly="(id and not edit) or state != 'sales'"/>
+                                    </group>
+                                </group>
+                                <group col="2">    
+                                    <group>
+                                        <field name="moq" placeholder="Vide" invisible="reftype not in ['interne','semifini','negoce']" readonly="(id and not edit) or state != 'sales'" required="reftype in ['interne','semifini','negoce']"/>
+                                    </group>
+                                    <group>
+                                        <field name="dermoq" widget="boolean_toggle" placeholder="Vide" invisible="reftype not in ['interne','semifini','negoce']" readonly="(id and not edit) or state != 'sales'"/>
+                                    </group>
+                                </group>
+                                <group col="2">    
+                                    <group>
+                                        <field name="nbrempr" placeholder="Vide" invisible="typefab != 'injection'" readonly="(id and not edit) or state != 'sales'" required="state == 'sales' and typefab == 'injection'"/>
+                                    </group>
+                                    <group>
+                                        <field name="dernbrempr" widget="boolean_toggle" placeholder="Vide" invisible="typefab != 'injection'" readonly="(id and not edit) or state != 'sales'"/>
+                                    </group>
+                                </group>
+                                <group col="2">    
+                                    <group>
+                                        <field name="tonpresse" placeholder="Vide" invisible="typefab != 'injection'" readonly="(id and not edit) or state != 'sales'" required="state == 'sales' and typefab == 'injection'"/>
+                                    </group>
+                                    <group>
+                                        <field name="dertonpresse" widget="boolean_toggle" placeholder="Vide" invisible="typefab != 'injection'" readonly="(id and not edit) or state != 'sales'"/>
+                                    </group>
+                                </group>                                       
+                            </group>
+                        </group>
+                        <group col="2">
+                            <field name="comsal" placeholder="Vide" groups="article_sap.group_sales,article_sap.group_keyuser" invisible="state not in ['sales']" readonly="(id and not edit) or state != 'sales'"/>
+                        </group>                                                        
+                        <group>
+                            <field name="comkey" placeholder="Vide" invisible="state not in ['keyuser']"/>
+                        </group>
+
+                        <group col="2">
+                            <field name="derbom" widget="boolean_toggle" invisible="not isfab" readonly="(id and not edit) or state != 'sales'"/>
+                        </group>
+                        <field name="id_lignes_bom" invisible="not isfab" readonly="(id and not edit) or state != 'sales'" required="state == 'sales' and isfab">
+                            <list editable="bottom">
+                                <field width="300" name="id_ref" options="{'no_create': True, 'no_create_edit': True, 'no_open': True}"/> 
+                                <field width="200" name="designation_article"/>
+                                <field width="200" placeholder="Vide" name="qtysap"/>
+                                <field width="200" placeholder="Vide" name="unitecomp"/> 
+                                <field width="200" placeholder="Vide" name="Taux_scrap"/>
+                                <field width="300" name="type_fab_article"/>
+                                <field width="300" name="state_fiche_article"/>
+                                <field width="600" placeholder="Vide" name="combom"/>
+                            </list>
+                        </field>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>        
+        </record>
+
+        <record id="article_sap_tree" model="ir.ui.view">
+            <field name="name">article.sap.list</field>
+            <field name="model">article.article</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="ref"/>
+                    <field name="reftype"/>
+                    <field name="state"/>
+                    <field name="create_uid" string="Crée par"/>
+                    <field name="create_date" string="Crée le"/>
+                    <field name="isderogation" widget="boolean_toggle" readonly="1"/>
+                    <field name="edit"/>
+                </list>
+            </field>
+        </record>    
+
+</odoo>
+
+
+
