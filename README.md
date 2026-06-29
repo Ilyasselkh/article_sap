@@ -1,53 +1,195 @@
 # Article SAP
 
-Module Odoo de creation et validation des fiches articles SAP. Il couvre les donnees sales, logistique, achat, ingenierie, key user, finance, derogations et BOM.
+Module Odoo de creation, enrichissement et validation des fiches articles SAP.
 
-## Objectif
+Le module centralise les donnees Sales, Logistique, Achat, Ingenierie, Key User et Finance, gere les lignes BOM, les derogations et l'archivage de la fiche article.
 
-Cette documentation explique le perimetre fonctionnel du module, les roles utilisateurs, le workflow, la configuration et les principaux objets techniques.
+## Objectif fonctionnel
 
-## Utilisateurs concernes
+Structurer la creation ou modification d'une reference article avant creation dans SAP.
 
-- Sales
-- Logistique
-- Achat
-- Ingenierie
-- Key user
-- Finance
-- Administrateur Odoo
+Le module permet de :
 
-## Workflow metier
+- creer une fiche article ;
+- garantir l'unicite de la reference ;
+- renseigner les donnees generales ;
+- suivre les informations logistiques ;
+- renseigner les donnees achat ;
+- renseigner les donnees ingenierie ;
+- renseigner les donnees key user ;
+- renseigner les donnees finance ;
+- ajouter des lignes BOM ;
+- gerer les derogations champ par champ ;
+- notifier les groupes a chaque transition ;
+- archiver la fiche terminee.
 
-1. Sales
-2. Logistique
-3. Achat 1
-4. Ingenierie
-5. Key user
-6. Achat 2
-7. Finance
-8. Derogation si necessaire
-9. Archive
+## Roles fonctionnels
 
-## Fonctionnement operationnel
+### Sales
 
-- Creer une fiche article.
-- Completer les champs du service courant.
-- Ajouter les lignes BOM si necessaire.
-- Transmettre au service suivant.
-- Traiter les derogations.
-- Archiver la fiche terminee.
+Sales initie la fiche article.
 
-## Configuration recommandee
+Il renseigne notamment :
 
-- Configurer les groupes par service.
-- Verifier unicite de la reference.
-- Adapter les templates mail.
-- Verifier les droits sur fiches et lignes BOM.
+- reference ;
+- designation ;
+- statut de reference ;
+- type de reference ;
+- Sales Traffic Light ;
+- commentaires sales.
 
-## Dependances Odoo
+### Logistique
 
-- `base`
-- `mail`
+Logistique complete les informations de flux et stockage.
+
+Elle renseigne notamment :
+
+- NGP ;
+- regime douanier ;
+- pays et region d'origine ;
+- temps de reception ;
+- type de planification ;
+- gestionnaire MRP ;
+- taille de lot ;
+- stock de securite.
+
+### Achat
+
+Achat intervient sur deux etapes du workflow.
+
+Il renseigne notamment :
+
+- fournisseur ;
+- MOQ ;
+- delai previsionnel de livraison ;
+- prix ;
+- devise ;
+- fiche information achat ;
+- validations liees aux achats.
+
+### Ingenierie
+
+Ingenierie renseigne les informations techniques.
+
+Elle intervient notamment sur :
+
+- type de fabrication ;
+- type d'emballage ;
+- poste de travail ;
+- temps de cycle ;
+- nombre d'empreintes ;
+- tonnage presse ;
+- moule ;
+- donnees de BOM.
+
+### Key User
+
+Le Key User controle les donnees metier et peut intervenir sur plusieurs etapes selon les droits.
+
+### Finance
+
+Finance renseigne les donnees de valorisation.
+
+Elle intervient notamment sur :
+
+- classes de valorisation ;
+- code prix ;
+- prix moyen pondere ;
+- base de prix ;
+- donnees internal et external.
+
+## Etats du workflow
+
+Les etats principaux sont :
+
+- `Sales`
+- `Logistique`
+- `Achat`
+- `Ingenierie`
+- `Key user`
+- `Achat`
+- `Finance`
+- `Derogation`
+- `Archive`
+
+## Flux standard
+
+1. `Sales`
+2. `Logistique`
+3. `Achat 1`
+4. `Ingenierie`
+5. `Key user`
+6. `Achat 2`
+7. `Finance`
+8. `Archive`
+
+Une etape `Derogation` peut etre utilisee lorsque certaines donnees necessitent une validation ou une exception.
+
+## Donnees article
+
+La fiche article contient notamment :
+
+- reference ;
+- designation ;
+- statut ;
+- type de reference ;
+- donnees logistiques ;
+- donnees achat ;
+- donnees techniques ;
+- donnees finance ;
+- commentaires par service ;
+- dates de passage par service ;
+- indicateurs de creation SAP, BOM et gamme.
+
+## BOM
+
+Les lignes BOM sont gerees dans le modele :
+
+- `article.lignebom`
+
+Elles permettent de rattacher les composants, quantites et unites a la fiche article.
+
+## Derogations
+
+Le module contient plusieurs champs de derogation permettant de signaler une exception sur :
+
+- type d'emballage ;
+- temps de cycle ;
+- nombre d'empreintes ;
+- tonnage presse ;
+- poste de travail ;
+- moule ;
+- MOQ ;
+- unite d'emballage ;
+- BOM ;
+- volume annuel ;
+- donnees logistiques.
+
+## Notifications
+
+Les templates email couvrent :
+
+- creation article ;
+- modification article ;
+- derogation ;
+- archivage.
+
+Fichier principal :
+
+- `data/mail_template_data.xml`
+
+## Securite et droits
+
+Les droits sont organises par groupes :
+
+- Sales ;
+- Logistique ;
+- Achat ;
+- Ingenierie ;
+- Key User ;
+- Finance.
+
+Le module active l'edition selon l'etat courant et le groupe de l'utilisateur.
 
 ## Modeles principaux
 
@@ -55,38 +197,33 @@ Cette documentation explique le perimetre fonctionnel du module, les roles utili
 - `article.lignebom`
 - `article.cat`
 
-## Structure importante du module
+## Structure du module
 
-- `security/ir.model.access.csv`
 - `security/security.xml`
+- `security/ir.model.access.csv`
 - `data/mail_template_data.xml`
 - `views/article.xml`
-- `views/dashboard.xml`
-- `views/deleted.xml`
 - `views/derogation.xml`
-- `models/__init__.py`
+- `views/deleted.xml`
 - `models/article.py`
-
-## Securite
-
-Les droits sont geres par les fichiers du dossier `security`. Il faut verifier les groupes, les regles enregistrement et les acces CSV apres installation ou modification du module.
-
-## Notifications et suivi
-
-Les modules qui dependent de `mail` utilisent le chatter Odoo pour tracer les changements. Les templates mail presents dans le dossier `data` servent a notifier les acteurs concernes par les transitions.
 
 ## Installation
 
 1. Copier le module dans le dossier addons Odoo.
 2. Redemarrer le serveur Odoo si necessaire.
 3. Mettre a jour la liste des applications.
-4. Installer ou mettre a jour le module.
-5. Verifier les droits utilisateurs et tester un dossier de bout en bout.
+4. Installer le module.
+5. Affecter les utilisateurs aux groupes par service.
+6. Tester une fiche article de bout en bout.
+7. Tester un cas de derogation.
 
-## Maintenance
+## Maintenance fonctionnelle
 
-- Ajouter toute nouvelle etape a la fois dans le modele Python, les vues XML, les droits et les notifications.
-- Tester les workflows avec plusieurs roles utilisateurs.
-- Mettre a jour les rapports et templates mail quand la procedure interne change.
-- Eviter de modifier les donnees de production sans sauvegarde.
-- Documenter toute evolution fonctionnelle dans ce README.
+Lorsqu'une donnee SAP change, verifier aussi :
+
+- les selections Python ;
+- les champs de la vue formulaire ;
+- les groupes de securite ;
+- les templates email ;
+- les controles de derogation ;
+- ce README.
